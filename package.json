@@ -16,14 +16,33 @@
   ],
   "main": "src/zar.js",
   "scripts": {
-    "start": "node src/zar.js"
+    "start": "node src/zar.js",
+    "test": "node --test",
+    "lint:backend": "eslint src/zar.js src/index.js src/dashboardMetrics.js src/events/client/messageCreate.js src/events/client/interactionCreate.js src/handlers/slash.js src/handlers/message.js src/messageCommands/Info/ping.js src/slashCommands/Info/ping.js 'src/slashCommands/V2 Components' src/services src/ipc src/storage src/web tests",
+    "lint": "npm run lint:backend && npm --prefix dashboard run lint",
+    "typecheck": "npm --prefix dashboard run typecheck",
+    "build": "npm --prefix dashboard run build",
+    "dev:dashboard": "npm --prefix dashboard run dev"
   },
   "type": "commonjs",
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "author": "ZarScape",
   "homepage": "https://github.com/ZarScape/discord.js-v14-v2-template.git",
   "dependencies": {
+    "better-sqlite3": "^12.2.0",
     "discord-hybrid-sharding": "^3.0.1",
     "discord.js": "^14.26.2",
-    "dotenv": "^17.4.0"
+    "dotenv": "^17.4.0",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "express-session": "^1.18.2",
+    "helmet": "^8.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "eslint": "^9.28.0",
+    "globals": "^16.2.0"
   }
 }

@@ -19,7 +19,7 @@ const {
   AttachmentBuilder,
   SlashCommandBuilder
 } = require('discord.js');
-const config = require('../../config/config.json');
+const { getAccentColor } = require('../../services/botSettings');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -29,7 +29,7 @@ module.exports = {
   /**
    * @param {import('discord.js').CommandInteraction} interaction
    */
-  run: async (client, interaction) => {
+  run: async (client, interaction, options, settings) => {
     const botAvatarURL = client.user.displayAvatarURL({ extension: 'png', size: 512 });
 
     // TextDisplay
@@ -97,7 +97,7 @@ module.exports = {
 
     // Container
     const container = new ContainerBuilder()
-      .setAccentColor(parseInt(config.color.replace('#', ''), 16))
+      .setAccentColor(getAccentColor(settings))
       .addMediaGalleryComponents(mediaGallery)
       .addSectionComponents(sectionWithThumbnail)
       .addMediaGalleryComponents(

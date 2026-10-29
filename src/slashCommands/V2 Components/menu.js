@@ -10,6 +10,7 @@ const {
   UserSelectMenuBuilder,
   MessageFlags,
 } = require('discord.js');
+const { getAccentColor } = require('../../services/botSettings');
 
 module.exports = {
   // Define the slash command
@@ -30,7 +31,7 @@ module.exports = {
     ),
 
   // Run function executed when the slash command is used
-  run: async (client, interaction) => {
+  run: async (client, interaction, options, settings) => {
     const selectedType = interaction.options.getString('type');
 
     // Text block showing which type was selected
@@ -88,7 +89,7 @@ module.exports = {
 
     // Container for v2 components: text + action row
     const container = new ContainerBuilder()
-      .setAccentColor(0x5865F2)    // optional accent color
+      .setAccentColor(getAccentColor(settings))    // optional accent color
       .addTextDisplayComponents(text)
       .addActionRowComponents(row);
 

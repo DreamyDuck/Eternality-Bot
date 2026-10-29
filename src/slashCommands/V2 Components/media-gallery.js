@@ -6,6 +6,7 @@ const {
   MediaGalleryItemBuilder, 
   ContainerBuilder 
 } = require('discord.js');
+const { getAccentColor } = require('../../services/botSettings');
 
 module.exports = {
   // Define the slash command
@@ -14,7 +15,7 @@ module.exports = {
     .setDescription('Displays a carousel of images using MediaGallery.'),
 
   // Run function executed when the slash command is used
-  run: async (client, interaction) => {
+  run: async (client, interaction, options, settings) => {
     // ---------------- MediaGallery ----------------
     // MediaGalleryBuilder displays images/videos in a carousel format
     const gallery = new MediaGalleryBuilder().addItems(
@@ -25,7 +26,7 @@ module.exports = {
     // ---------------- Container ----------------
     // ContainerBuilder holds the media gallery for v2 components
     const container = new ContainerBuilder()
-      .setAccentColor(0x5865F2)          // Optional container color
+      .setAccentColor(getAccentColor(settings))          // Optional container color
       .addMediaGalleryComponents(gallery); // Add the MediaGallery
 
     // ---------------- Interaction Reply ----------------

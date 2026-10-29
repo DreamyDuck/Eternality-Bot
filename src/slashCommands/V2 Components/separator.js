@@ -9,6 +9,7 @@ const {
   ContainerBuilder, 
   TextDisplayBuilder 
 } = require('discord.js');
+const { getAccentColor } = require('../../services/botSettings');
 
 module.exports = {
   // Define the slash command metadata
@@ -17,7 +18,7 @@ module.exports = {
     .setDescription('Shows supported V2 component separators.'),
 
   // Run function executed when the slash command is triggered
-  run: async (client, interaction) => {
+  run: async (client, interaction, options, settings) => {
 
     // ------------------------ SMALL DIVIDER ------------------------
     // Text label for small divider
@@ -52,7 +53,7 @@ module.exports = {
     // ------------------------ CONTAINER ------------------------
     // ContainerBuilder wraps all text labels and separators together
     const container = new ContainerBuilder()
-      .setAccentColor(0x5865F2)      // Optional accent color for the container
+      .setAccentColor(getAccentColor(settings))      // Optional accent color for the container
 
       // Add small divider section
       .addTextDisplayComponents(textSmall)

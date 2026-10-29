@@ -9,6 +9,7 @@ const {
   SeparatorBuilder,
   SeparatorSpacingSize,
 } = require('discord.js');
+const { getAccentColor } = require('../../services/botSettings');
 
 module.exports = {
   // Define the slash command
@@ -17,7 +18,7 @@ module.exports = {
     .setDescription('Shows a link button inside a container (style 2'),
 
   // Run function executed when the slash command is used
-  run: async (client, interaction) => {
+  run: async (client, interaction, options, settings) => {
     try {
       // ---------------- Main Content ----------------
       // Text block to display above the button
@@ -36,7 +37,7 @@ module.exports = {
 
       // ContainerBuilder combines text, separator, and button for v2 components
       const container = new ContainerBuilder()
-        .setAccentColor(0x5865F2)                     // Optional container color
+        .setAccentColor(getAccentColor(settings))                     // Optional container color
         .addTextDisplayComponents(text)               // Add the text block
         .addSeparatorComponents(sep)                  // Add the separator
         .addActionRowComponents(actionRow =>          // Add the button inside an action row

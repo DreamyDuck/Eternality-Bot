@@ -160,17 +160,81 @@ You should see a consolidated console log with **all commands and events loaded*
 
 ---
 
+## 🔒 Private Dashboard
+
+The owner-only dashboard is optional and disabled unless `DASHBOARD_ENABLED=true`.
+The default `npm start` behavior remains the bot manager and workers only.
+Use Node.js 22.13 or newer.
+
+1. Create a Discord OAuth2 application and add the exact callback URL from
+   `DASHBOARD_CALLBACK_URL` to its redirect URLs. The dashboard requests only
+   the `identify` scope; `DASHBOARD_OWNER_ID` must be your numeric Discord user
+   ID. No guild permission is used for dashboard access.
+2. Set the dashboard environment variables in `.env`:
+
+   ```env
+   DASHBOARD_ENABLED=true
+   DASHBOARD_OWNER_ID=YOUR_DISCORD_USER_ID
+   DASHBOARD_OAUTH_CLIENT_ID=YOUR_OAUTH_APPLICATION_ID
+   DASHBOARD_OAUTH_CLIENT_SECRET=YOUR_OAUTH_CLIENT_SECRET
+   DASHBOARD_SESSION_SECRET=GENERATE_A_RANDOM_SECRET
+   DASHBOARD_ORIGIN=https://dashboard.example.com
+   DASHBOARD_CALLBACK_URL=https://dashboard.example.com/auth/discord/callback
+   DASHBOARD_PORT=3001
+   DASHBOARD_DB_PATH=data/dashboard.sqlite
+   ```
+
+   Generate a session secret with `openssl rand -base64 48`. Keep OAuth
+   credentials and the session secret private; do not commit `.env`.
+3. For production, install and build both workspaces before starting the Bot:
+
+   ```bash
+   npm ci
+   npm ci --prefix dashboard
+   npm run build
+   npm start
+   ```
+
+   The build creates `dashboard/dist`, which the manager serves when the
+   dashboard is enabled. The dashboard HTTP server listens on
+   `127.0.0.1:3001` by default (`DASHBOARD_PORT` overrides the port). Do not
+   expose this port publicly. Put exactly one trusted local reverse proxy in
+   front of it; that proxy must forward `X-Forwarded-Proto` and
+   `X-Forwarded-For` and overwrite client-supplied forwarding headers. The app
+   trusts exactly that one proxy hop. Require public HTTPS at
+   `DASHBOARD_ORIGIN`; do not route through an untrusted local proxy.
+4. Keep `DASHBOARD_DB_PATH` on persistent storage. Back up this SQLite file
+   regularly. The dashboard stores global overrides, sessions, and a settings
+   audit log there; it never writes `src/config/config.json`.
+5. For local Vite development, set the origin and callback to the Vite origin,
+   for example `http://localhost:5173` and
+   `http://localhost:5173/auth/discord/callback`, and register that callback
+   with the OAuth application. Start the bot manager with `npm start`, then
+   run `npm --prefix dashboard run dev -- --host 0.0.0.0` and open
+   `http://localhost:5173`. Vite proxies `/api` and `/auth` to the manager on
+   `127.0.0.1:3001`; set `DASHBOARD_PORT` to another value only if you also
+   change that proxy target.
+
+`npm test`, `npm run lint`, `npm run typecheck`, and `npm run build` run the
+project checks; `npm run build` also creates the production dashboard assets.
+
+---
+
 ## 🧩 Adding Commands
 
 ### Slash Commands
 
 1. Place slash command files under `src/slashCommands/[Category]/`.
-2. Export `data` (`SlashCommandBuilder`) and `run`.
+2. Export `data` (`SlashCommandBuilder`) and
+   `run(client, interaction, options, settings)`. The optional final `settings`
+   argument contains the active global `prefix`, `botName`, and `color`.
 
 ### Message Commands
 
 1. Place message command files under `src/messageCommands/[Category]/`.
-2. Export `name`, optional `aliases`, and `run(client, message, args, prefix)`.
+2. Export `name`, optional `aliases`, and
+   `run(client, message, args, prefix, settings)`. The optional final `settings`
+   argument contains the active global `prefix`, `botName`, and `color`.
 3. Use any supported trigger:
    - `?ping`
    - `zar ping`

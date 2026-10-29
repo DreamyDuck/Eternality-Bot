@@ -1,30 +1,16 @@
 // ========================= SLASH COMMAND HANDLER =========================
-const client = require('../index');
-const { REST, Routes, SlashCommandBuilder } = require('discord.js');
-const fs = require('fs');
+const { REST, Routes } = require('discord.js');
 const { colorize } = require('../utils/consoleStyle');
+const { discoverSlashCommands } = require('../services/commandDiscovery');
 require('dotenv').config({ quiet: true });
 
-module.exports = async () => {
-    const slash = [];
-    let loadedCommands = [];
-    let skippedCommands = [];
-
-    fs.readdirSync('./src/slashCommands/').forEach(dir => {
-        const commands = fs.readdirSync(`./src/slashCommands/${dir}`).filter(file => file.endsWith('.js'));
-
-        for (let file of commands) {
-            const commandModule = require(`../slashCommands/${dir}/${file}`);
-
-            if (commandModule.data && commandModule.data instanceof SlashCommandBuilder) {
-                slash.push(commandModule.data.toJSON());
-                client.slash.set(commandModule.data.name, commandModule);
-                loadedCommands.push(commandModule.data.name);
-            } else {
-                skippedCommands.push(file);
-            }
-        }
+module.exports = async (client) => {
+    const { commands, skipped: skippedCommands } = discoverSlashCommands();
+    const slash = commands.map(({ module: commandModule }) => {
+        client.slash.set(commandModule.data.name, commandModule);
+        return commandModule.data.toJSON();
     });
+    const loadedCommands = commands.map(({ module: commandModule }) => commandModule.data.name);
 
     // Build single box log
     const allCommands = [

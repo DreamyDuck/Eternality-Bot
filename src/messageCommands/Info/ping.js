@@ -5,14 +5,14 @@ const {
     ContainerBuilder,
     SeparatorBuilder,
 } = require('discord.js');
-const config = require('../../config/config.json');
+const { getAccentColor } = require('../../services/botSettings');
 
 module.exports = {
     name: 'ping',
     aliases: ['p'],
     description: 'Check the app latency and status!',
     usage: 'ping',
-    async run(client, message) {
+    async run(client, message, args, prefix, settings) {
         if (!message.guild) {
             return message.reply('This command can only be used in a server.');
         }
@@ -26,7 +26,7 @@ module.exports = {
 
         const appPerms = message.channel.permissionsFor(message.guild.members.me);
         const missingPerms = requiredAppPermissions.filter((perm) => !appPerms || !appPerms.has(perm));
-        const accentColor = parseInt(String(config.color || '000000').replace('#', ''), 16);
+        const accentColor = getAccentColor(settings);
 
         if (missingPerms.length > 0) {
             const permNames = missingPerms

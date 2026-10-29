@@ -7,6 +7,7 @@ const {
   ThumbnailBuilder, 
   ContainerBuilder 
 } = require('discord.js');
+const { getAccentColor } = require('../../services/botSettings');
 
 module.exports = {
   // Define the slash command
@@ -15,7 +16,7 @@ module.exports = {
     .setDescription('Shows a Section component with optional thumbnail.'),
 
   // Run function executed when the slash command is used
-  run: async (client, interaction) => {
+  run: async (client, interaction, options, settings) => {
     // ---------------- Section ----------------
     // SectionBuilder groups multiple text blocks and can include a thumbnail
     const section = new SectionBuilder()
@@ -31,7 +32,7 @@ module.exports = {
 
     // ContainerBuilder wraps the section for v2 components
     const container = new ContainerBuilder()
-      .setAccentColor(0x5865F2)   // Optional container accent color
+      .setAccentColor(getAccentColor(settings))   // Optional container accent color
       .addSectionComponents(section);
 
     // Reply to the interaction with the container

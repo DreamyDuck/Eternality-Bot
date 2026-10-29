@@ -6,6 +6,7 @@ const {
   ContainerBuilder, 
   SeparatorBuilder 
 } = require('discord.js');
+const { getAccentColor } = require('../../services/botSettings');
 
 module.exports = {
   // Define the slash command
@@ -13,7 +14,7 @@ module.exports = {
     .setName('text-display')
     .setDescription('Shows a TextDisplay component with Markdown.'),
 
-  run: async (client, interaction) => {
+  run: async (client, interaction, options, settings) => {
     // ---------------- TextDisplay ----------------
     // TextDisplayBuilder holds static text, supports Markdown formatting
     const text = new TextDisplayBuilder()
@@ -27,7 +28,7 @@ module.exports = {
     // ---------------- Container ----------------
     // Wrap the text and separator in a ContainerBuilder for v2 components
     const container = new ContainerBuilder()
-      .setAccentColor(0x5865F2)       // Optional accent color
+      .setAccentColor(getAccentColor(settings))       // Optional accent color
       .addTextDisplayComponents(text)  // Add the text block
       .addSeparatorComponents(separator); // Add the separator
 
