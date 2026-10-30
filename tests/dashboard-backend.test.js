@@ -165,6 +165,86 @@ test('SQLite settings updates, conflicts, resets, audit, and restart persistence
     reopened.close();
 });
 
+test('session cleanup prunes expired rows on throttled saveSession and touchSession writes', (t) => {
+    let now = 1_000_000;
+    t.mock.method(Date, 'now', () => now);
+    const database = new DashboardDatabase({ filename: ':memory:', defaults });
+    t.after(() => database.close());
+
+    const insertSession = database.database.prepare(`
+        INSERT INTO dashboard_sessions (sid, data, expires_at) VALUES (?, '{}', ?)
+    `);
+    const sessionIds = () => database.database.prepare(
+        'SELECT sid FROM dashboard_sessions ORDER BY sid',
+    ).all().map(({ sid }) => sid);
+    const session = (expiresAt) => ({
+        cookie: { expires: new Date(expiresAt).toISOString() },
+    });
+
+    insertSession.run('expired-before-boundary', now - 1);
+    insertSession.run('expired-at-boundary', now);
+    insertSession.run('fresh', now + 240_000);
+
+    database.saveSession('save-trigger', session(now + 240_000), 60_000);
+    assert.deepEqual(sessionIds(), [
+        'expired-at-boundary',
+        'expired-before-boundary',
+        'fresh',
+        'save-trigger',
+    ]);
+
+    now += 60_000;
+    database.saveSession('save-trigger', session(now + 240_000), 60_000);
+    assert.deepEqual(sessionIds(), ['fresh', 'save-trigger']);
+
+    insertSession.run('expired-before-touch', now);
+    insertSession.run('touch-trigger', now + 240_000);
+    database.touchSession('touch-trigger', session(now + 240_000), 60_000);
+    assert.deepEqual(sessionIds(), [
+        'expired-before-touch',
+        'fresh',
+        'save-trigger',
+        'touch-trigger',
+    ]);
+
+    now += 60_000;
+    database.touchSession('touch-trigger', session(now + 240_000), 60_000);
+    assert.deepEqual(sessionIds(), ['fresh', 'save-trigger', 'touch-trigger']);
+});
+
+test('session cleanup removes expired file-backed rows when reopening without requests', (t) => {
+    const fs = require('node:fs');
+    const os = require('node:os');
+    const path = require('node:path');
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'eternality-dashboard-session-cleanup-'));
+    const filename = path.join(directory, 'dashboard.sqlite');
+    let now = 2_000_000;
+    t.mock.method(Date, 'now', () => now);
+    let database;
+    t.after(() => {
+        if (database?.database.open) database.close();
+        fs.rmSync(directory, { recursive: true, force: true });
+    });
+
+    database = new DashboardDatabase({ filename, defaults });
+    database.database.prepare(`
+        INSERT INTO dashboard_sessions (sid, data, expires_at) VALUES (?, '{}', ?)
+    `).run('expired-before-reopen', now - 1);
+    database.database.prepare(`
+        INSERT INTO dashboard_sessions (sid, data, expires_at) VALUES (?, '{}', ?)
+    `).run('expired-at-reopen', now);
+    database.database.prepare(`
+        INSERT INTO dashboard_sessions (sid, data, expires_at) VALUES (?, '{}', ?)
+    `).run('fresh', now + 60_000);
+    database.close();
+
+    database = new DashboardDatabase({ filename, defaults });
+    const sessionIds = database.database.prepare(
+        'SELECT sid FROM dashboard_sessions ORDER BY sid',
+    ).all().map(({ sid }) => sid);
+    assert.deepEqual(sessionIds, ['fresh']);
+});
+
 test('all API routes and logout reject unauthenticated sessions', async (t) => {
     const fixture = createTestApp();
     t.after(() => fixture.database.close());

@@ -210,8 +210,10 @@ Use Node.js 22.13 or newer.
    for example `http://localhost:5173` and
    `http://localhost:5173/auth/discord/callback`, and register that callback
    with the OAuth application. Start the bot manager with `npm start`, then
-   run `npm --prefix dashboard run dev -- --host 0.0.0.0` and open
-   `http://localhost:5173`. Vite proxies `/api` and `/auth` to the manager on
+   run `npm --prefix dashboard run dev` and open `http://localhost:5173`.
+   Vite binds to localhost; do not bind or proxy the development server
+   publicly. For remote access, use an SSH local port-forward rather than
+   exposing the dev server. Vite proxies `/api` and `/auth` to the manager on
    `127.0.0.1:3001`; set `DASHBOARD_PORT` to another value only if you also
    change that proxy target.
 

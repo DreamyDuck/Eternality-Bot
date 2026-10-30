@@ -26,6 +26,8 @@ class DashboardDatabase {
         this.database.pragma('journal_mode = WAL');
         this.database.pragma('busy_timeout = 5000');
         this.migrate();
+        this.nextSessionCleanupAt = null;
+        this.pruneExpiredSessions();
     }
 
     migrate() {
@@ -137,7 +139,18 @@ class DashboardDatabase {
         };
     }
 
+    pruneExpiredSessions() {
+        const now = Date.now();
+        if (this.nextSessionCleanupAt !== null && now < this.nextSessionCleanupAt) return;
+
+        this.database.prepare(
+            'DELETE FROM dashboard_sessions WHERE expires_at <= ?',
+        ).run(now);
+        this.nextSessionCleanupAt = now + 60_000;
+    }
+
     saveSession(sid, session, maxAgeMs) {
+        this.pruneExpiredSessions();
         const cookieExpiry = session.cookie?.expires
             ? new Date(session.cookie.expires).getTime()
             : Date.now() + maxAgeMs;
@@ -162,6 +175,7 @@ class DashboardDatabase {
     }
 
     touchSession(sid, session, maxAgeMs) {
+        this.pruneExpiredSessions();
         const cookieExpiry = session.cookie?.expires
             ? new Date(session.cookie.expires).getTime()
             : Date.now() + maxAgeMs;
