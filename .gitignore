@@ -4,5 +4,9 @@ node_modules/
 # Environment variables
 .env
 
-# Package lock file
-package-lock.json
+# Dashboard runtime data and generated output
+data/
+dashboard/dist/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

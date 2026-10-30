@@ -8,6 +8,7 @@ const {
   ContainerBuilder, 
   TextDisplayBuilder 
 } = require('discord.js');
+const { getAccentColor } = require('../../services/botSettings');
 
 module.exports = {
   // Define the slash command
@@ -16,7 +17,7 @@ module.exports = {
     .setDescription('Demonstrates a report-style button (external link).'),
 
   // Run function executed when the slash command is used
-  run: async (client, interaction) => {
+  run: async (client, interaction, options, settings) => {
     // Create a link button that opens your support server
     const reportButton = new ButtonBuilder()
       .setLabel('Join Our Support Server')       // Button text
@@ -28,7 +29,7 @@ module.exports = {
 
     // Create a container to hold text and optionally other components
     const container = new ContainerBuilder()
-      .setAccentColor(0x5865F2) // Optional accent color
+      .setAccentColor(getAccentColor(settings)) // Optional accent color
       .addTextDisplayComponents(
         new TextDisplayBuilder().setContent('⚠️ Click below to report an issue.')
       );

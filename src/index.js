@@ -4,6 +4,7 @@ require('./console/watermark');
 const { Client, Partials, Collection } = require('discord.js');
 const { ClusterClient } = require('discord-hybrid-sharding');
 const { colorize } = require('./utils/consoleStyle');
+const { installWorkerIpc } = require('./ipc/worker');
 
 // Create Discord client
 const client = new Client({
@@ -42,6 +43,7 @@ client.aliases = new Collection();
 
 // Attach ClusterClient
 client.cluster = new ClusterClient(client);
+installWorkerIpc(client);
 
 // Load handlers AFTER client is exported
 ["event", "slash", "message"].forEach(file => require(`./handlers/${file}`)(client));
@@ -62,6 +64,17 @@ client.on('error', (error) => {
 client.on('shardError', (error) => {
     console.error("[SHARD ERROR]", error);
 });
+
+let shuttingDown = false;
+async function shutdown() {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    await Promise.resolve(client.destroy()).catch(() => null);
+    process.exit(0);
+}
+
+process.once('SIGINT', () => void shutdown());
+process.once('SIGTERM', () => void shutdown());
 
 process.on('uncaughtException', (err) => {
     console.error("[UNCAUGHT EXCEPTION]", err);

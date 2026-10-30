@@ -7,6 +7,7 @@ const {
   ContainerBuilder, 
   AttachmentBuilder 
 } = require('discord.js');
+const { getAccentColor } = require('../../services/botSettings');
 
 module.exports = {
   // Define the slash command
@@ -15,7 +16,7 @@ module.exports = {
     .setDescription('Demonstrates attaching a file dynamically using Components V2'),
 
   // Run function executed when the slash command is used
-  run: async (client, interaction) => {
+  run: async (client, interaction, options, settings) => {
     // ---------------- Create Dummy JSON ----------------
     // Create a simple JSON object and convert it to a buffer
     const dummyJSON = { message: 'Hello from Components V2! join my support server if this code helps https://discord.gg/6YVmxA4Qsf', timestamp: new Date() };
@@ -37,7 +38,7 @@ module.exports = {
     // ---------------- Container ----------------
     // ContainerBuilder groups multiple components together
     const container = new ContainerBuilder()
-      .setAccentColor(0x5865F2)        // Optional color for the container
+      .setAccentColor(getAccentColor(settings))        // Optional color for the container
       .addTextDisplayComponents(text)   // Add descriptive text
       .addFileComponents(fileComponent); // Add the file component
 

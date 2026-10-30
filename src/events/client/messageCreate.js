@@ -1,10 +1,10 @@
-const config = require('../../config/config.json');
 const {
     MessageFlags,
     TextDisplayBuilder,
     ContainerBuilder,
     SeparatorBuilder,
 } = require('discord.js');
+const { getAccentColor, getBotSettings } = require('../../services/botSettings');
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -15,9 +15,10 @@ module.exports = {
         if (!message || !message.content) return;
         if (message.author?.bot) return;
 
-        const prefix = typeof config.prefix === 'string' ? config.prefix.trim() : '';
-        const botName = typeof config.botName === 'string' && config.botName.trim().length > 0
-            ? config.botName.trim().toLowerCase()
+        const settings = await getBotSettings(client);
+        const prefix = typeof settings.prefix === 'string' ? settings.prefix.trim() : '';
+        const botName = typeof settings.botName === 'string' && settings.botName.trim().length > 0
+            ? settings.botName.trim().toLowerCase()
             : '';
         const mentionRegex = client.user
             ? new RegExp(`^<@!?${escapeRegex(client.user.id)}>(?:\\s+|$)`)
@@ -64,7 +65,7 @@ module.exports = {
         if (!command || typeof command.run !== 'function') return;
 
         try {
-            await command.run(client, message, args, prefix);
+            await command.run(client, message, args, prefix, settings);
         } catch (error) {
             console.error(`[MESSAGE COMMAND ERROR] ${resolvedName}:`, error);
             const errorText = new TextDisplayBuilder()
@@ -72,7 +73,7 @@ module.exports = {
 
             const sep = new SeparatorBuilder();
             const container = new ContainerBuilder()
-                .setAccentColor(parseInt(String(config.color || '000000').replace('#', ''), 16))
+                .setAccentColor(getAccentColor(settings))
                 .addSeparatorComponents(sep)
                 .addTextDisplayComponents(errorText)
                 .addSeparatorComponents(sep);

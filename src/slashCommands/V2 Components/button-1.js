@@ -8,6 +8,7 @@ const {
   TextDisplayBuilder, 
   ContainerBuilder 
 } = require('discord.js');
+const { getAccentColor } = require('../../services/botSettings');
 
 module.exports = {
   // Define the slash command
@@ -16,7 +17,7 @@ module.exports = {
     .setDescription('Shows a Link Button (style 1)'),
 
   // Run function executed when the slash command is used
-  run: async (client, interaction) => {
+  run: async (client, interaction, options, settings) => {
     // Create a link button
     const button = new ButtonBuilder()
       .setLabel('Support')                                 // Button text
@@ -32,7 +33,7 @@ module.exports = {
 
     // ContainerBuilder holds the section (and optionally multiple sections)
     const container = new ContainerBuilder()
-      .setAccentColor(0x5865F2)       // Optional accent color
+      .setAccentColor(getAccentColor(settings))       // Optional accent color
       .addSectionComponents(section); // Add the section to the container
 
     // Reply to the interaction using v2 components

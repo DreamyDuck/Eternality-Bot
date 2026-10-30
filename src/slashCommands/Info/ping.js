@@ -1,7 +1,7 @@
 // src/slashCommands/Utility/ping.js
 const { SlashCommandBuilder, PermissionsBitField } = require('discord.js');
 const { TextDisplayBuilder, ContainerBuilder, SeparatorBuilder, MessageFlags } = require('discord.js');
-const config = require('../../config/config.json');
+const { getAccentColor } = require('../../services/botSettings');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -12,7 +12,7 @@ module.exports = {
    * @param {import('discord.js').Client} client 
    * @param {import('discord.js').CommandInteraction} interaction 
    */
-  run: async (client, interaction) => {
+  run: async (client, interaction, options, settings) => {
     // Check app permissions
     const requiredAppPermissions = [
       PermissionsBitField.Flags.ViewChannel,
@@ -34,7 +34,7 @@ module.exports = {
 
       const sep = new SeparatorBuilder();
       const container = new ContainerBuilder()
-        .setAccentColor(parseInt(config.color.replace('#', ''), 16))
+        .setAccentColor(getAccentColor(settings))
         .addSeparatorComponents(sep)
         .addTextDisplayComponents(errorText)
         .addSeparatorComponents(sep);
@@ -56,7 +56,7 @@ module.exports = {
 
     const separator = new SeparatorBuilder();
     const container = new ContainerBuilder()
-      .setAccentColor(parseInt(config.color.replace('#', ''), 16))
+      .setAccentColor(getAccentColor(settings))
       .addSeparatorComponents(separator)
       .addTextDisplayComponents(pingText)
       .addSeparatorComponents(separator);
